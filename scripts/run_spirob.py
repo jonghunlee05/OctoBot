@@ -1,38 +1,50 @@
 import os
-import numpy as np
 import mujoco
 import mujoco.viewer
+import math
 
-# In case macOS gets moody about GL
 os.environ.setdefault("MUJOCO_GL", "glfw")
 
-# Path to the XML (run this from the OctoBot folder)
-MODEL_PATH = "models/spirob_2c_planar.xml"
+MODEL_PATH = "models/stick_simple.xml"
 
 model = mujoco.MjModel.from_xml_path(MODEL_PATH)
 data = mujoco.MjData(model)
 
-n_joints = 6  # joint0 ... joint5
+# Get actuator ID
+actuator_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "hinge_actuator")
 
-def set_wave_pose(data, t):
-    """Simple standing wave that curls and uncurls the tentacle."""
-    amp_deg = 18      # max angle at the tip
-    freq = 0.25       # Hz
+# Current target angle in degrees
+target_angle_deg = 0.0
 
-    phase = np.sin(2 * np.pi * freq * t)
+# Angle limits (degrees)
+MIN_ANGLE = -90.0
+MAX_ANGLE = 90.0
 
-    # More bend near the tip, less near the base
-    for i in range(n_joints):
-        weight = (i + 1) / n_joints      # 1/6 ... 6/6
-        target_angle = np.deg2rad(amp_deg) * phase * weight
-        data.ctrl[i] = target_angle
+def clamp(x, lo, hi):
+    """Clamp value between lo and hi"""
+    return max(lo, min(hi, x))
 
-with mujoco.viewer.launch_passive(model, data) as viewer:
+def key_callback(keycode):
+    global target_angle_deg
+    
+    if 32 <= keycode <= 126:
+        c = chr(keycode).lower()
+        
+        if c == "a":
+            # Press A: turn -10 degrees
+            target_angle_deg = clamp(target_angle_deg - 10.0, MIN_ANGLE, MAX_ANGLE)
+            print(f"Target angle: {target_angle_deg:.1f} degrees")
+        elif c == "d":
+            # Press D: turn +10 degrees
+            target_angle_deg = clamp(target_angle_deg + 10.0, MIN_ANGLE, MAX_ANGLE)
+            print(f"Target angle: {target_angle_deg:.1f} degrees")
+
+with mujoco.viewer.launch_passive(model, data, key_callback=key_callback) as viewer:
     while viewer.is_running():
-        t = data.time
-
-        # set desired joint positions through actuators
-        set_wave_pose(data, t)
-
+        # Convert degrees to radians and set control
+        target_angle_rad = math.radians(target_angle_deg)
+        data.ctrl[actuator_id] = target_angle_rad
+        
+        # Step simulation
         mujoco.mj_step(model, data)
         viewer.sync()
