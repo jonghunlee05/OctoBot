@@ -1,0 +1,62 @@
+<mujoco model="spirob_2c_planar">
+  <compiler angle="degree" coordinate="local"/>
+  <option timestep="0.002" integrator="RK4"/>
+
+  <default>
+    <joint type="hinge" axis="0 1 0" range="-20 20" damping="0.1" stiffness="1"/>
+    <geom type="capsule" rgba="0.9 0.9 0.9 1"/>
+  </default>
+
+  <worldbody>
+    <body name="base" pos="0 0 0">
+      <geom type="sphere" size="0.015" rgba="0.2 0.2 0.2 1"/>
+
+      <!-- segment 0 (thickest, near base) -->
+      <body name="seg0" pos="0 0 0.030">
+        <joint name="joint0"/>
+        <geom fromto="0 0 0 0 0 0.030" size="0.0084"/>
+
+        <!-- segment 1 -->
+        <body name="seg1" pos="0 0 0.030">
+          <joint name="joint1"/>
+          <geom fromto="0 0 0 0 0 0.030" size="0.0080"/>
+
+          <!-- segment 2 -->
+          <body name="seg2" pos="0 0 0.030">
+            <joint name="joint2"/>
+            <geom fromto="0 0 0 0 0 0.030" size="0.0076"/>
+
+            <!-- segment 3 -->
+            <body name="seg3" pos="0 0 0.030">
+              <joint name="joint3"/>
+              <geom fromto="0 0 0 0 0 0.030" size="0.0072"/>
+
+              <!-- segment 4 -->
+              <body name="seg4" pos="0 0 0.030">
+                <joint name="joint4"/>
+                <geom fromto="0 0 0 0 0 0.030" size="0.0068"/>
+
+                <!-- segment 5 (thinnest, tip) -->
+                <body name="seg5" pos="0 0 0.030">
+                  <joint name="joint5"/>
+                  <geom fromto="0 0 0 0 0 0.030" size="0.0064"/>
+                </body>
+
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="act0" joint="joint0" kp="20"/>
+    <position name="act1" joint="joint1" kp="20"/>
+    <position name="act2" joint="joint2" kp="20"/>
+    <position name="act3" joint="joint3" kp="20"/>
+    <position name="act4" joint="joint4" kp="20"/>
+    <position name="act5" joint="joint5" kp="20"/>
+  </actuator>
+</mujoco>
