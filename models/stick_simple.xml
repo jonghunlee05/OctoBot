@@ -3,8 +3,9 @@
   <option timestep="0.002" gravity="0 0 -9.81"/>
 
   <default>
-    <joint type="hinge" axis="0 1 0" range="-180 180" damping="1.0"/>
-    <geom type="capsule" rgba="0.2 0.8 0.2 1"/>
+    <joint type="hinge" axis="0 1 0" range="-45 45" damping="2.0" stiffness="0.5"/>
+    <geom type="capsule" rgba="0.2 0.8 0.2 1" contype="1" conaffinity="1"/>
+    <site size="0.005" rgba="1 0 0 1"/>
   </default>
 
   <worldbody>
@@ -14,18 +15,87 @@
     <!-- Base fixed at origin -->
     <body name="base" pos="0 0 0.05">
       <geom type="sphere" size="0.03" rgba="0.1 0.1 0.1 1"/>
+      
+      <!-- Cable anchor points at base -->
+      <site name="base_left" pos="0.01 0 0.02"/>
+      <site name="base_right" pos="-0.01 0 0.02"/>
 
-      <!-- Stick with hinge joint -->
-      <body name="stick" pos="0 0 0.05">
-        <joint name="hinge"/>
-        <!-- 40 cm long stick along +Z -->
-        <geom fromto="0 0 0  0 0 0.4" size="0.015" rgba="0.2 0.8 0.2 1"/>
+      <!-- Segment 0 (base segment) -->
+      <body name="seg0" pos="0 0 0.05">
+        <joint name="j0"/>
+        <geom fromto="0 0 0  0 0 0.04" size="0.012" rgba="0.2 0.8 0.2 1"/>
+        <site name="s0_left" pos="0.01 0 0.02"/>
+        <site name="s0_right" pos="-0.01 0 0.02"/>
+
+        <!-- Segment 1 -->
+        <body name="seg1" pos="0 0 0.04">
+          <joint name="j1"/>
+          <geom fromto="0 0 0  0 0 0.035" size="0.011" rgba="0.2 0.8 0.2 1"/>
+          <site name="s1_left" pos="0.01 0 0.0175"/>
+          <site name="s1_right" pos="-0.01 0 0.0175"/>
+
+          <!-- Segment 2 -->
+          <body name="seg2" pos="0 0 0.035">
+            <joint name="j2"/>
+            <geom fromto="0 0 0  0 0 0.03" size="0.010" rgba="0.2 0.8 0.2 1"/>
+            <site name="s2_left" pos="0.01 0 0.015"/>
+            <site name="s2_right" pos="-0.01 0 0.015"/>
+
+            <!-- Segment 3 -->
+            <body name="seg3" pos="0 0 0.03">
+              <joint name="j3"/>
+              <geom fromto="0 0 0  0 0 0.025" size="0.009" rgba="0.2 0.8 0.2 1"/>
+              <site name="s3_left" pos="0.01 0 0.0125"/>
+              <site name="s3_right" pos="-0.01 0 0.0125"/>
+
+              <!-- Segment 4 -->
+              <body name="seg4" pos="0 0 0.025">
+                <joint name="j4"/>
+                <geom fromto="0 0 0  0 0 0.02" size="0.008" rgba="0.2 0.8 0.2 1"/>
+                <site name="s4_left" pos="0.01 0 0.01"/>
+                <site name="s4_right" pos="-0.01 0 0.01"/>
+
+                <!-- Segment 5 (tip) -->
+                <body name="seg5" pos="0 0 0.02">
+                  <joint name="j5"/>
+                  <geom fromto="0 0 0  0 0 0.015" size="0.007" rgba="0.2 0.8 0.2 1"/>
+                  <site name="s5_left" pos="0.01 0 0.0075"/>
+                  <site name="s5_right" pos="-0.01 0 0.0075"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
       </body>
     </body>
   </worldbody>
 
-  <!-- Position actuator on the hinge -->
+  <!-- Cable system: left and right cables that control bending -->
+  <tendon>
+    <spatial name="left_cable" width="0.003" rgba="1 0 0 0.5">
+      <site site="base_left"/>
+      <site site="s0_left"/>
+      <site site="s1_left"/>
+      <site site="s2_left"/>
+      <site site="s3_left"/>
+      <site site="s4_left"/>
+      <site site="s5_left"/>
+    </spatial>
+    
+    <spatial name="right_cable" width="0.003" rgba="0 0 1 0.5">
+      <site site="base_right"/>
+      <site site="s0_right"/>
+      <site site="s1_right"/>
+      <site site="s2_right"/>
+      <site site="s3_right"/>
+      <site site="s4_right"/>
+      <site site="s5_right"/>
+    </spatial>
+  </tendon>
+
+  <!-- Actuators: control cable lengths to create bending -->
   <actuator>
-    <position name="hinge_actuator" joint="hinge" kp="50" ctrlrange="-180 180"/>
+    <general name="left_motor" tendon="left_cable" gainprm="1000" biasprm="0 -1000 0" ctrlrange="-0.05 0.05"/>
+    <general name="right_motor" tendon="right_cable" gainprm="1000" biasprm="0 -1000 0" ctrlrange="-0.05 0.05"/>
   </actuator>
 </mujoco>
